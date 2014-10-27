@@ -1,22 +1,9 @@
--module(db).
+-module(dao).
 -import(lists, [foreach/2]).
 -compile(export_all).
 
 -include_lib("stdlib/include/qlc.hrl").
-
--record(shop, {item, quantity, cost}).
--record(cost, {name, price}).
--record(design, {id, plan}).
-
-
-
-do_this_once() ->
-	mnesia:create_schema([node()]),
-	mnesia:start(),
-	mnesia:create_table(shop, [{attributes, record_info(fields, shop)}]),
-	mnesia:create_table(cost, [{attributes, record_info(fields, cost)}]),
-    mnesia:create_table(design, [{attributes, record_info(fields, design)}]),
-	mnesia:stop().
+-include("db.hrl").
 
 start() ->
     mnesia:start(),
