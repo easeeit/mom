@@ -9,8 +9,10 @@
 -module(web_server).
 -compile(export_all).
 
+-include("../include/web.hrl").
+
 start() ->
-    start(8877).
+    start(?WEB_PORT).
 
 start_from_shell([PortAsAtom]) ->
     PortAsInt = list_to_integer(atom_to_list(PortAsAtom)),
@@ -26,7 +28,7 @@ start(Port) ->
     Dispatch = cowboy_router:compile(
 		 [
 		  %% {URIHost, list({URIPath, Handler, Opts})}
-		  {'_', [{'_', dispatch_handler, []}]}
+		  {'_', [{'_', web_server, []}]}
 		 ]),
     cowboy:start_http(web_server,
 		      N_acceptors,
@@ -38,3 +40,11 @@ start(Port) ->
 
 terminate(_Reason, _Req, _State) ->
     ok.
+
+init(Req, Opts) ->
+  handle(Req, Opts).
+
+handle(Req, State) ->
+  Path = cowboy_req:path(Req),
+  echo:me("REQUEST PATH:"++binary_to_list(Path)),
+  dispatcher:handle(Path, Req, State).

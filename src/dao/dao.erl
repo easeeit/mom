@@ -7,18 +7,19 @@
 
 start() ->
     mnesia:start(),
-    mnesia:wait_for_tables([shop,cost,design], 20000).
+    mnesia:wait_for_tables([x_article,x_topic,x_comment], 20000).
 
-select(shop) ->
-	do(qlc:q([{X#shop.item, X#shop.quantity} || X <- mnesia:table(shop)])).
+select(x_article) ->
+%	do(qlc:q([{X#shop.item, X#shop.quantity} || X <- mnesia:table(shop)])).
+  do(qlc:q([{X} || X <- mnesia:table(x_article)])).
 
 do(Q) ->
     F = fun() -> qlc:e(Q) end,
     {atomic, Val} = mnesia:transaction(F),
     Val.
 
-insert_shop(Name, Quantity, Cost) ->
-	Row = #shop{item=Name, quantity = Quantity, cost = Cost},
+insert_shop(ID, Title, SubTitle) ->
+	Row = #x_article{id=ID, title = Title, sub_title = SubTitle},
 	F = fun() ->
 			mnesia:write(Row)
 		end,
