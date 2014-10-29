@@ -3,7 +3,7 @@
 -compile(export_all).
 
 -include_lib("stdlib/include/qlc.hrl").
--include("db.hrl").
+-include("../include/db.hrl").
 
 start() ->
     mnesia:start(),
@@ -23,3 +23,6 @@ insert_shop(Name, Quantity, Cost) ->
 			mnesia:write(Row)
 		end,
 	mnesia:transaction(F).
+
+stop() ->
+	mnesia:stop().
