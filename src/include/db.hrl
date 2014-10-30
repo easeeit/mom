@@ -1,3 +1,9 @@
+%%表存储策略
+%%磁盘+内存,可从磁盘中恢复
+-define(TABLE_STORAGE_POLICY_DISC, disc_copies).
+%%仅磁盘
+-define(TABLE_STORAGE_POLICY_DISC_ONLY, disc_only_copies).
+
 -record(x_article, {id, title, sub_title, content, source, type, author, status, hits_count, laud_count, url, original_url, create_time}).
 -record(x_topic, {id, title, content, status, platform, user_id, laud_count, create_time}).
 -record(x_comment, {id, subject_type, subject_id, content, status, laud_count, quote_list, user_id, nickname, user_ip, user_location, create_time}).
@@ -17,9 +23,3 @@
 -record(x_friend_request, {id, from_user_id, to_user_id, status, create_time}).
 -record(x_friend, {id, user_id1, user_id2, create_time}).
 -record(x_praise, {id, user_id, subject_id, subject_type}).
-
-%%表存储策略
-%%磁盘+内存,可从磁盘中恢复
--define(TABLE_STORAGE_POLICY_DISC, disc_copies).
-%%仅磁盘
--define(TABLE_STORAGE_POLICY_DISC_ONLY, disc_only_copies).

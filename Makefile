@@ -18,7 +18,7 @@ socket:compile
 
 #start web server
 web:compile
-	erl -noshell $(deps) $(dbpath) -s msg_app start_web
+	erl $(deps) $(dbpath) -s msg_app start_web
 
 #init database tables
 init-database:compile

@@ -17,16 +17,20 @@ select(x_article) ->
   do(qlc:q([{X} || X <- mnesia:table(x_article)])).
 
 do(Q) ->
-    F = fun() -> qlc:e(Q) end,
-    {atomic, Val} = mnesia:transaction(F),
-    Val.
+  F = fun() -> qlc:e(Q) end,
+  {atomic, Val} = mnesia:transaction(F),
+  Val.
 
-insert_shop(ID, Title, SubTitle) ->
-	Row = #x_article{id=ID, title = Title, sub_title = SubTitle},
-	F = fun() ->
-			mnesia:write(Row)
-		end,
-	mnesia:transaction(F).
+insert(Rows) when is_list(Rows) ->
+  F = fun() ->
+    lists:foreach(fun mnesia:write/1, Rows)
+  end,
+  mnesia:transaction(F);
+insert(Row) ->
+  F = fun() ->
+    mnesia:write(Row)
+  end,
+  mnesia:transaction(F).
 
 %% 指定表的数据量
 count(Table) ->
@@ -54,6 +58,7 @@ list(Table) ->
     {ok,L}.
 
 %% 按条件查询指定表满足条件的所有数据
+list(Table,[]) -> list(Table);
 list(Table,Where) ->
     case query_func(Table,Where) of
         {error,Msg} -> {error,Msg};
@@ -68,6 +73,7 @@ list(Table,Where) ->
 %% @type Limit = integer() > 0
 %% @spec list(site,1,20) -> [L] | {error,badarg} 
 list(Table,Offset,Limit) ->
+  echo:me([Table,Offset,Limit]),
     if 
         is_integer(Offset) and is_integer(Limit) and (Offset > 0) and (Limit > 0) -> 
             F=fun() ->
@@ -126,15 +132,18 @@ query_func(Table,Where) ->
     end.
 
 %% 查询商品(shop) 
-query_cond(x_article,Where) ->
+query_cond(Table,Where) ->
     case Where of
             %% 按Item查询
             [{id,ID}] ->
-                QH=qlc:q([X || X <- mnesia:table(x_article),
+                QH=qlc:q([X || X <- mnesia:table(Table),
                                     X#x_article.id =:= ID]),
                 {ok,QH};
             [_] ->
-                {error,badarg}
+                {error,badarg};
+            [] ->
+                QH=qlc:q([X || X <- mnesia:table(Table)]),
+                {ok,QH}
         end;
 
 

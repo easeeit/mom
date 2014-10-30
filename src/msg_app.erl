@@ -16,7 +16,8 @@ start1() ->
 	start(undefined,undefined).
 
 start_web() ->
-    msg_sup:start_link(),
+  msg_sup:start_link(),
+  dao:start(),
 	web_server:start().
 
 start(_StartType, _StartArgs) ->
