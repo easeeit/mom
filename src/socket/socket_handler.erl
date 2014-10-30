@@ -32,7 +32,7 @@ manage_clients(UserSocketList) ->
 %      echo:me(NewUserSocketList)
       echo:me(length(NewUserSocketList))
       %广播
-      %send_data(Sockets, Data),
+      %send_return(Sockets, Data),
   end,
   manage_clients(NewUserSocketList).
 
@@ -46,8 +46,9 @@ analyse_heander(DataStr, Socket, UserSocketList) ->
     ?SOCKET_HEANDER_REGISTER ->
   	  command_register(Arguments, Socket, UserSocketList);    
     ?SOCKET_HEANDER_PUSH -> 
-      {Status, _, _} = command_push(Arguments, Socket, UserSocketList),
-      echo:me(Status);
+      {Status, So, NewList} = command_push(Arguments, Socket, UserSocketList),
+      echo:me(Status),
+      {Status, So, NewList};
     _Other -> 
       command_error(Socket, UserSocketList)
   end.
@@ -55,20 +56,25 @@ analyse_heander(DataStr, Socket, UserSocketList) ->
 %%终端注册应用 
 %%客户端需要发送:RegisterApp||app标识::用户标识,
 %%例如:"RegisterApp||jiejie::293485729",其中jiejie是应用标识,293485729是用户标识
-command_register([], _Socket,_UserSocketList) -> 
-  {no_register_data, _Socket,_UserSocketList};
-command_register([_AppID | []], _Socket,_UserSocketList) -> 
-  {no_userid, _Socket,_UserSocketList};  
+command_register([], Socket,_UserSocketList) -> 
+  send_return({Socket, ?CODE_NULL_PARAM}),
+  {no_register_data, Socket,_UserSocketList};
+command_register([_AppID | []], Socket,_UserSocketList) -> 
+  send_return({Socket, ?CODE_NULL_PARAM}),
+  {no_userid, Socket,_UserSocketList};  
 command_register([AppID | [UserID | _]],Socket,UserSocketList) ->
 %  echo:me(AppID),
 %  echo:me(UserID),
+  send_return({Socket, ?CODE_OK}),
   {ok, Socket, [{list_to_atom(AppID), list_to_atom(AppID++UserID) , Socket} | UserSocketList]}.
 
 %%推送消息, 参数中的Socket 是,发送消息者的Socket
-command_push([], _Socket, _UserSocketList) ->
-  {no_push_data, _Socket, _UserSocketList};
-command_push([_UserID | []], _Socket, _UserSocketList) ->
-  {no_msg, _Socket, _UserSocketList};
+command_push([], Socket, _UserSocketList) ->
+  send_return({Socket, ?CODE_NULL_PARAM}),
+  {no_push_data, Socket, _UserSocketList};
+command_push([_UserID | []], Socket, _UserSocketList) ->
+  send_return({Socket, ?CODE_ERROR_DATA}),
+  {no_msg, Socket, _UserSocketList};
 command_push([UserID | [MsgData | _]], Socket, UserSocketList) ->
   echo:me("user : "++UserID ++ " , msg : "++MsgData),
   push_data(Socket, [{So, MsgData} || {_AppID, UID, So} <- UserSocketList, 
@@ -76,25 +82,23 @@ command_push([UserID | [MsgData | _]], Socket, UserSocketList) ->
   {ok, Socket, UserSocketList}.
 
 command_error(Socket, _UserSocketList) ->
-  send_data({Socket, "error_command"}),
+  send_return({Socket, ?CODE_ERROT_COMMAND}),
   {error_header, Socket, _UserSocketList}.
 
 push_data(SrcSocket, []) -> 
   % 返回给发送方404
-  send_data({SrcSocket, "404"});
+  send_return({SrcSocket, ?CODE_NO_DATA});
 push_data(SrcSocket, TargetList) ->
   lists:foreach(fun(P) ->send_data(P) end , TargetList),
-  send_data({SrcSocket, "200"}).
+  send_return({SrcSocket, ?CODE_OK}).
 
+send_return({Socket, Data}) ->
+  echo:me("send_return : "++Data),
+  gen_tcp:send(Socket, Data++?END_OF_MESSAGE).
 
 send_data({Socket, Data}) ->
   echo:me("send_data : "++Data),
   gen_tcp:send(Socket, Data).
-%send_data(Sockets, Data) ->
-%  SendData = fun(Socket) ->
-%    gen_tcp:send(Socket, Data)
-%  end,
-%  lists:foreach(SendData, Sockets).
 
 %%删除子列表
 delete_list(BaseList, []) -> BaseList;

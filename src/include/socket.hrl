@@ -6,5 +6,12 @@
 
 -define(SEPERATOR_REGEXP, "<:>").
 -define(All_PUSH, "all").
+-define(END_OF_MESSAGE, "<EOM>").
 %SOCKET PORT
 -define(SOCKET_PORT, 1234).
+
+-define(CODE_OK, "200").
+-define(CODE_NULL_PARAM, "400").
+-define(CODE_ERROT_COMMAND, "401").
+-define(CODE_ERROR_DATA, "402").
+-define(CODE_NO_DATA, "404").
