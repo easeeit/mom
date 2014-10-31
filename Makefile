@@ -6,6 +6,8 @@ deps = -pa deps/cowboy/ebin \
 
 dbpath = -mnesia dir '"database"'
 
+baseCommand = erl -noshell $(deps) $(dbpath)
+
 all:compile
 
 #no program start
@@ -14,7 +16,10 @@ cmd:compile
 
 #start socket server
 socket:compile
-	erl -noshell $(deps) $(dbpath) -s socket_server start
+	$(baseCommand) -s socket_server start
+
+ss:compile
+	$(baseCommand) -detached +P 500000 -s socket_server start
 
 #start web server
 web:compile
@@ -22,7 +27,7 @@ web:compile
 
 #init database tables
 init-database:compile
-	erl -noshell $(deps) $(dbpath) -s db_init do_this_once
+	$(baseCommand) -s db_init do_this_once
 
 #only compile all program
 compile:	

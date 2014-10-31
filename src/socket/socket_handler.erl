@@ -43,8 +43,14 @@ analyse_heander(DataStr, Socket, UserSocketList) ->
   [Command | Arguments] = re:split(DataStr, ?SEPERATOR_REGEXP, [{return, list}]),
 %  echo:me(Command),
   case Command of
+    % 心跳
+    ?SOCKET_HEANDER_HEARTBEAT ->
+      send_return({Socket, ?CODE_OK}),
+      {ok, Socket, UserSocketList};
+    % 注册客户端
     ?SOCKET_HEANDER_REGISTER ->
   	  command_register(Arguments, Socket, UserSocketList);    
+    % 云端推送
     ?SOCKET_HEANDER_PUSH -> 
       {Status, So, NewList} = command_push(Arguments, Socket, UserSocketList),
       echo:me(Status),
